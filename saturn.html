@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      overflow: hidden;
+      margin: 0;
+    }
+  </style>
+  <title>Three.js Solar System</title>
+
+  <script type="module">
+    import * as THREE from "https://esm.sh/three";
+    import { OrbitControls } from "https://esm.sh/three/addons/controls/OrbitControls.js";
+
+    console.clear();
+
+    // Set up scene
+    let scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+
+    // Set up camera
+    let camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 1, 1000);
+    camera.position.setScalar(80);
+
+    // Set up renderer
+    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Handle window resize
+    window.addEventListener("resize", () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // Set up controls
+    let controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // Add lights
+    let light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 5, 5);
+    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
+
+    // Texture loader
+    const textureLoader = new THREE.TextureLoader();
+
+    // Earth
+    const earthGeometry = new THREE.SphereGeometry(13, 64, 54);
+    const earthMaterial = new THREE.MeshPhongMaterial({
+      specular: 0x333333,
+      shininess: 10,
+      map: textureLoader.load('./saturn.jpg'),
+      normalScale: new THREE.Vector2(0.85, 0.85)
+    });
+    earthMaterial.map.encoding = THREE.sRGBEncoding;
+    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+    scene.add(earth);
+
+    // Saturn Ring
+    const ringGeometry = new THREE.RingGeometry(16, 24, 94);
+    const ringMaterial = new THREE.MeshPhongMaterial({
+      map: textureLoader.load('./moons/ring.png'),  // Replace 'saturn_ring.jpg' with your ring texture
+      side: THREE.DoubleSide,
+      transparent: false,
+      opacity: 0.8,
+      shininess: 50
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    scene.add(ring);
+
+    // Update the position and rotation of the ring
+    ring.rotation.x = Math.PI / 2;  // Rotate the ring to be horizontal
+    ring.position.copy(earth.position);
+
+    // Stars
+    const starsGeometry = new THREE.BufferGeometry();
+    const starsMaterial = new THREE.PointsMaterial({ color: 0xFF0000, size: 1 });
+
+    const starsVertices = [];
+    for (let i = 0; i < 5000; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      starsVertices.push(x, y, z);
+    }
+
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
+    // Moons
+    const moons = [];
+    const numMoons = 146;
+
+    // Array of moon images
+    const moonImages = [
+      '/ay-code/moons/moon.jpg',
+      '/ay-code/moons/moon1.jpg',
+      '/ay-code/moons/moon2.jpg',
+      '/ay-code/moons/moon3.jpg',
+      '/ay-code/moons/moon4.jpg',
+      '/ay-code/moons/moon5.jpg',
+      '/ay-code/moons/moon6.jpg',
+
+      '/ay-code/moons/moon7.jpg',
+      '/ay-code/moons/moon8.jpg',
+      '/ay-code/moons/moon9.jpg',
+      '/ay-code/moons/moon10.jpg',
+      '/ay-code/moons/moon11.jpg',
+      '/ay-code/moons/moon12.jpg',
+
+      '/ay-code/moons/moon13.jpg',
+      '/ay-code/moons/moon14.jpg',
+      '/ay-code/moons/moon15.jpg',
+      '/ay-code/moons/moon16.jpg',
+      // Add more images as needed
+    ];
+
+    for (let i = 0; i < numMoons; i++) {
+      const moonRadius = 1.2 + Math.random() * 1.5;
+      const moonGeometry = new THREE.SphereGeometry(moonRadius, 54, 54);
+      const moonMaterial = new THREE.MeshPhongMaterial({
+        shininess: 10,
+        map: textureLoader.load(moonImages[Math.floor(Math.random() * moonImages.length)])
+      });
+      moonMaterial.map.encoding = THREE.sRGBEncoding;
+      const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+      moons.push(moon);
+      scene.add(moon);
+    }
+
+    let clock = new THREE.Clock();
+    let t = 0;
+
+    // Animation loop
+    renderer.setAnimationLoop(() => {
+      let dt = clock.getDelta();
+      t += dt * 0.1;
+      controls.update();
+
+      // Rotate Earth on its axis
+      earth.rotation.y += 0.01;
+
+      // Rotate Moons around Earth
+      for (let i = 0; i < numMoons; i++) {
+        moons[i].rotation.y += 0.01;
+        const radius = 30 + i * 0.5;
+        moons[i].position.set(Math.cos(t + i), 0, -Math.sin(t + i)).multiplyScalar(radius);
+      }
+
+      renderer.render(scene, camera);
+    });
+  </script>
+
+</head>
+
+<body>
+</body>
+
+</html>
