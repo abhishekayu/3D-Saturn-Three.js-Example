@@ -10,11 +10,13 @@
       margin: 0;
     }
   </style>
-  <title>Three.js Solar System</title>
+  <title>Three.js 3D Saturn and its 105 Moons</title>
 
   <script type="module">
     import * as THREE from "https://esm.sh/three";
     import { OrbitControls } from "https://esm.sh/three/addons/controls/OrbitControls.js";
+    import { FontLoader } from "https://esm.sh/three/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "https://esm.sh/three/examples/jsm/geometries/TextGeometry.js";
 
     console.clear();
 
@@ -137,6 +139,29 @@
 
     let clock = new THREE.Clock();
     let t = 0;
+
+
+    const fontLoader = new FontLoader();
+let textMesh;
+
+fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
+  const textGeometry = new TextGeometry('Abhishek Verma (abhishekayu)', {
+    font: font,
+    size: 2,
+    height: 0.2,
+    opacity: 0.5,
+  });
+  
+  const textMaterial = new THREE.MeshBasicMaterial({ color: 0x454443 }); // Yellow color
+  textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+  // Position the text relative to the Earth
+  textMesh.position.copy(earth.position);
+  textMesh.position.y += 100;
+  textMesh.position.x -= 20;
+
+  scene.add(textMesh);
+});
 
     // Animation loop
     renderer.setAnimationLoop(() => {
